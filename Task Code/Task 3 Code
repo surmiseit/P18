@@ -1,0 +1,127 @@
+#include <iostream>
+#include <vector>
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <algorithm> // for max
+#include <chrono>    // for timing the algorithm
+
+using namespace std;
+
+class Graph {
+private:
+    int V; // Number of vertices
+    vector<vector<int>> adjList;
+
+    // DFS helper for cycle detection
+    bool isCyclicUtil(int u, vector<bool>& visited, vector<bool>& recStack, vector<int>& path) {
+        visited[u] = true;
+        recStack[u] = true;
+        path.push_back(u);
+
+        for (int v : adjList[u]) {
+            if (!visited[v]) {
+                if (isCyclicUtil(v, visited, recStack, path))
+                    return true;
+            } else if (recStack[v]) { // Back edge found
+                cout << "\n--- Cycle Found! ---" << endl;
+                cout << "Cycle Path: ";
+                auto it = find(path.begin(), path.end(), v);
+                while (it != path.end()) {
+                    cout << *it << " -> ";
+                    ++it;
+                }
+                cout << v << endl;
+                cout << "--------------------" << endl;
+                return true;
+            }
+        }
+
+        recStack[u] = false;
+        path.pop_back();
+        return false;
+    }
+
+public:
+    Graph(int num_vertices) {
+        V = num_vertices;
+        adjList.resize(V);
+    }
+
+    void addEdge(int u, int v) {
+        if (u < V && v < V) {
+            adjList[u].push_back(v);
+        }
+    }
+
+    bool hasCycle() {
+        vector<bool> visited(V, false);
+        vector<bool> recStack(V, false);
+        vector<int> path;
+
+        for (int i = 0; i < V; ++i) {
+            if (!visited[i]) {
+                if (isCyclicUtil(i, visited, recStack, path))
+                    return true;
+            }
+        }
+        return false;
+    }
+};
+
+int main() {
+    string filename = "directed_graph.txt";
+    ifstream file(filename);
+    if (!file.is_open()) {
+        cerr << "Error! File not found: " << filename << endl;
+        return 1;
+    }
+
+    cout << "File opened. First pass to find graph size..." << endl;
+    int max_node = 0;
+    string line;
+
+    while (getline(file, line)) {
+        stringstream ss(line);
+        int u, v;
+        if (ss >> u >> v) {
+            max_node = max(max_node, max(u, v));
+        }
+    }
+
+    int num_vertices = max_node + 1;
+    cout << "Max node ID is " << max_node << ". Total vertices: " << num_vertices << endl;
+
+    file.clear();
+    file.seekg(0, ios::beg);
+
+    Graph g(num_vertices);
+    cout << "Second pass: loading graph edges..." << endl;
+    int edge_count = 0;
+
+    while (getline(file, line)) {
+        stringstream ss(line);
+        int u, v;
+        if (ss >> u >> v) {
+            g.addEdge(u, v);
+            edge_count++;
+        }
+    }
+    file.close();
+
+    cout << "Loaded " << edge_count << " edges." << endl;
+    cout << "---------------------------------------" << endl;
+    cout << "Running DFS to detect cycles..." << endl;
+
+    auto start = chrono::high_resolution_clock::now();
+    if (g.hasCycle()) {
+        cout << "\nResult: Cycle Detected." << endl;
+    } else {
+        cout << "\nResult: No Cycle Found." << endl;
+    }
+    auto end = chrono::high_resolution_clock::now();
+    chrono::duration<double> elapsed = end - start;
+    cout << "Algorithm finished in " << elapsed.count() << " seconds." << endl;
+
+    return 0;
+}
