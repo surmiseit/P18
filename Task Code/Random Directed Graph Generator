@@ -1,0 +1,72 @@
+#include <iostream>
+#include <vector>
+#include <random>
+#include <fstream>
+using namespace std;
+
+// Function to generate a random directed graph
+vector<vector<int>> generateRandomDirectedGraph(int V, double edgeProb) {
+    vector<vector<int>> adj(V);
+
+    random_device rd;
+    mt19937 gen(rd());
+    uniform_real_distribution<> dis(0.0, 1.0);
+
+    // Generate directed edges
+    for (int u = 0; u < V; ++u) {
+        for (int v = 0; v < V; ++v) {
+            if (u != v && dis(gen) < edgeProb) {
+                adj[u].push_back(v);
+            }
+        }
+    }
+
+    return adj;
+}
+
+// Function to print the adjacency list
+void printGraph(const vector<vector<int>>& adj) {
+    cout << "Directed Graph (Adjacency List):\n";
+    for (int i = 0; i < adj.size(); ++i) {
+        cout << i << " -> ";
+        for (int v : adj[i])
+            cout << v << " ";
+        cout << "\n";
+    }
+}
+
+// Function to save edges to a text file
+void saveGraphToFile(const vector<vector<int>>& adj, const string& filename) {
+    ofstream out(filename);
+    if (!out.is_open()) {
+        cerr << "Error: Could not open file for writing.\n";
+        return;
+    }
+
+    for (int u = 0; u < adj.size(); ++u) {
+        for (int v : adj[u]) {
+            out << u << " " << v << "\n";
+        }
+    }
+    out.close();
+    cout << "Graph saved to " << filename << "\n";
+}
+
+int main() {
+    int V;
+    double edgeProb;
+
+    cout << "Enter number of vertices: ";
+    cin >> V;
+    cout << "Enter edge probability (0.0 - 1.0): ";
+    cin >> edgeProb;
+
+    auto adj = generateRandomDirectedGraph(V, edgeProb);
+
+    printGraph(adj);
+
+    // Save to file for testing
+    saveGraphToFile(adj, "directed_graph.txt");
+
+    return 0;
+}
