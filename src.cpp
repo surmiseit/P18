@@ -3,16 +3,18 @@
 #include <fstream>
 #include <sstream>
 #include <string>
-#include <algorithm> // for std::max
+#include <algorithm> // for max
 #include <chrono>    // for timing the algorithm
+
+using namespace std;
 
 class Graph {
 private:
     int V; // Number of vertices
-    std::vector<std::vector<int>> adjList;
+    vector<vector<int>> adjList;
 
     // The main DFS logic is in this helper function
-    bool isCyclicUtil(int u, std::vector<bool>& visited, std::vector<bool>& recStack, std::vector<int>& path) {
+    bool isCyclicUtil(int u, vector<bool>& visited, vector<bool>& recStack, vector<int>& path) {
         visited[u] = true;
         recStack[u] = true;
         path.push_back(u);
@@ -28,15 +30,15 @@ private:
             // If the neighbour is already in our current path (recStack), it's a back edge.
             // Cycle found!
             else if (recStack[v]) {
-                std::cout << "\n--- Cycle Found! ---" << std::endl;
-                std::cout << "Cycle Path: ";
-                auto it = std::find(path.begin(), path.end(), v);
+                cout << "\n--- Cycle Found! ---" << endl;
+                cout << "Cycle Path: ";
+                auto it = find(path.begin(), path.end(), v);
                 while (it != path.end()) {
-                    std::cout << *it << " -> ";
+                    cout << *it << " -> ";
                     it++;
                 }
-                std::cout << v << std::endl;
-                std::cout << "--------------------" << std::endl;
+                cout << v << endl;
+                cout << "--------------------" << endl;
                 return true;
             }
         }
@@ -63,9 +65,9 @@ public:
 
     // Main function to check for cycle
     bool hasCycle() {
-        std::vector<bool> visited(V, false);
-        std::vector<bool> recStack(V, false);
-        std::vector<int> path;
+        vector<bool> visited(V, false);
+        vector<bool> recStack(V, false);
+        vector<int> path;
 
         // We have to check from every node in case graph is disconnected
         for (int i = 0; i < V; i++) {
@@ -81,61 +83,61 @@ public:
 
 // --- Main Program ---
 int main() {
-    std::cout << "P18 Cycle Detection Program..." << std::endl;
-
-    std::string filename = "data/dataset.csv";
-    std::ifstream file(filename);
+    string filename ;
+    cout << "P18 Cycle Detection Program..." <<"\nEnter name of a file : ";
+    cin>>filename;
+    ifstream file(filename);
 
     if (!file.is_open()) {
-        std::cerr << "Error! File not found. Check the path: " << filename << std::endl;
+        cerr << "Error! File not found. Check the path: " << filename << endl;
         return 1;
     }
     
     // Initially, we considered hardcoding the size, but realized that's inefficient.
     // It's better to find the max node id first.
-    std::cout << "File opened. First pass to find graph size..." << std::endl;
+    cout << "File opened. First pass to find graph size..." << endl;
     
     int max_node = 0;
-    std::string line;
-    std::getline(file, line); // Skip header
+    string line;
+    getline(file, line); // Skip header
 
-    while (std::getline(file, line)) {
-        std::stringstream ss(line);
-        std::string s_src, s_dest;
+    while (getline(file, line)) {
+        stringstream ss(line);
+        string s_src, s_dest;
         
-        std::getline(ss, s_src, ',');
-        std::getline(ss, s_dest, ',');
+        getline(ss, s_src, ',');
+        getline(ss, s_dest, ',');
         
         try {
-            max_node = std::max({max_node, std::stoi(s_src), std::stoi(s_dest)});
+            max_node = max({max_node, stoi(s_src), stoi(s_dest)});
         } catch (...) {
             // some lines might be bad, just skip them
         }
     }
 
     int num_vertices = max_node + 1;
-    std::cout << "Max node ID is " << max_node << ". Total vertices needed: " << num_vertices << std::endl;
+    cout << "Max node ID is " << max_node << ". Total vertices needed: " << num_vertices << endl;
 
     // Reset file to read again for adding edges
     file.clear();
-    file.seekg(0, std::ios::beg);
+    file.seekg(0, ios::beg);
     
     Graph g(num_vertices);
     
-    std::cout << "Second pass: loading graph edges..." << std::endl;
+    cout << "Second pass: loading graph edges..." << endl;
     int edge_count = 0;
-    std::getline(file, line); // Skip header again
+    getline(file, line); // Skip header again
 
-    while (std::getline(file, line)) {
-        std::stringstream ss(line);
-        std::string s_src, s_dest;
+    while (getline(file, line)) {
+        stringstream ss(line);
+        string s_src, s_dest;
 
-        std::getline(ss, s_src, ',');
-        std::getline(ss, s_dest, ',');
+        getline(ss, s_src, ',');
+        getline(ss, s_dest, ',');
         
         try {
-            int u = std::stoi(s_src);
-            int v = std::stoi(s_dest);
+            int u = stoi(s_src);
+            int v = stoi(s_dest);
             g.addEdge(u, v);
             edge_count++;
         } catch (...) {
@@ -144,21 +146,21 @@ int main() {
     }
     file.close();
 
-    std::cout << "Done. Loaded " << edge_count << " edges." << std::endl;
-    std::cout << "---------------------------------------" << std::endl;
-    std::cout << "Ok, running DFS to find a cycle..." << std::endl;
+    cout << "Done. Loaded " << edge_count << " edges." << endl;
+    cout << "---------------------------------------" << endl;
+    cout << "Ok, running DFS to find a cycle..." << endl;
 
-    auto start = std::chrono::high_resolution_clock::now();
+    auto start = chrono::high_resolution_clock::now();
 
     if (g.hasCycle()) {
-        std::cout << "\nResult: Cycle Detected." << std::endl;
+        cout << "\nResult: Cycle Detected." << endl;
     } else {
-        std::cout << "\nResult: No Cycle Found." << std::endl;
+        cout << "\nResult: No Cycle Found." << endl;
     }
 
-    auto end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> elapsed = end - start;
-    std::cout << "Algorithm finished in " << elapsed.count() << " seconds." << std::endl;
+    auto end = chrono::high_resolution_clock::now();
+    chrono::duration<double> elapsed = end - start;
+    cout << "Algorithm finished in " << elapsed.count() << " seconds." << endl;
 
     return 0;
 }
